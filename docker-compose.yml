@@ -1,0 +1,44 @@
+version: '3'
+services:
+  nginx:
+    image: nginx
+    ports:
+      - "8000:80"
+    depends_on:
+      - phalapi
+    volumes:
+      - "$DOCKERPATH/phalapi-docker/conf/nginx/conf.d:/etc/nginx/conf.d"
+      - "$DOCKERPATH/phalapi-docker/conf/nginx/nginx.conf:/usr/local/nginx/conf/nginx.conf"
+      - "$DOCKERPATH/phalapi-docker/html:/usr/share/nginx/html"
+      - "$DOCKERPATH/phalapi-docker/log:/var/log/nginx"
+    networks:
+      - phalapi_net
+    container_name: "phalapi_nginx"
+  phalapi:
+    image: shuxnhs/phalapi:latest
+    ports: ["9000"]
+    environment:
+      - DB_HOST=172.28.0.2
+      - DB_USER=root
+      - DB_PASS=123456
+      - DB_PORT=3306
+    volumes:
+      - "$DOCKERPATH/phalapi-docker/html/phalapi:/var/www/html/phalapi"
+      - "$DOCKERPATH/phalapi-docker/conf/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf"
+    networks:
+      - phalapi_net
+    container_name: "phalapi"
+
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3308:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - "$DOCKERPATH/phalapi-docker/mysql:/var/lib/mysql"
+    networks:
+      - phalapi_net
+    container_name: "phalapi_mysql"
+networks:
+  phalapi_net:
